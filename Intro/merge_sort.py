@@ -13,7 +13,7 @@ def test_function(sort_function):
         np.random.shuffle(a)
 
         start_time = time.time()
-        a_sorted = sort_function(np.copy(a), 'descend')
+        a_sorted = sort_function(np.copy(a))
         runtime = time.time() - start_time
         print("--- %s seconds for %d numbers ---" % (runtime, n))
         # print('Array:\n{a}\nSorted array:\n{a_sorted}')
