@@ -11,6 +11,8 @@ BST property:
 """
 
 import random
+import matplotlib.pyplot as plt
+import networkx as nx
 
 class Node:
     def __init__(self, key):
@@ -149,12 +151,68 @@ def tree_delete(root, node):
         y.left = node.left
         y.left.parent = y
 
+# ------------------ Plotting functions ------------------ #
+
+def plot_tree_states(states, titles):
+    """Plot multiple BST states side by side."""
+    fig, axes = plt.subplots(1, len(states), figsize=(6 * len(states), 6))
+    if len(states) == 1:
+        axes = [axes]
+
+    for ax, root, title in zip(axes, states, titles):
+        G = nx.DiGraph()
+        pos = {}
+
+        def add_edges(node, x=0, y=0, depth=0):
+            if node is None:
+                return
+            pos[node] = (x, -depth)
+            if node.left:
+                G.add_edge(node, node.left)
+                add_edges(node.left, x - 2 ** (-depth), y, depth + 1)
+            if node.right:
+                G.add_edge(node, node.right)
+                add_edges(node.right, x + 2 ** (-depth), y, depth + 1)
+
+        add_edges(root)
+
+        colors = []
+        for node in G.nodes():
+            if node == root:
+                colors.append('sandybrown')
+            elif node.left is None and node.right is None:
+                colors.append('lightgreen')
+            else:
+                colors.append('lightblue')
+
+        labels = {node: node.key for node in G.nodes()}
+        nx.draw(G, pos, ax=ax, labels=labels, with_labels=True, node_size=1000,
+                node_color=colors, font_size=10, arrows=True)
+        ax.set_title(title)
+        ax.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+def clone_tree(node, parent=None):
+    """Deep copy a tree rooted at node, preserving structure and keys."""
+    if node is None:
+        return None
+    new_node = Node(node.key)
+    new_node.parent = parent
+    new_node.left = clone_tree(node.left, new_node)
+    new_node.right = clone_tree(node.right, new_node)
+    return new_node
+
+# ------------------ Testing ------------------ # 
 
 if __name__ == '__main__':
+    state = []
     # Generate a tree
     root = Node(20)
-    for i in range(15):
+    for i in range(20):
         tree_insert(root, Node(random.randint(0, 40)))
+    state.append(clone_tree(root))
 
     # Testing functions
     ## Print keys in sorted order
@@ -186,11 +244,21 @@ if __name__ == '__main__':
     ## Deletion
     if not tree_search(root, k):  # create node k and insert
         node_k = Node(k)
-        tree_insert(root, node_k)
+        tree_insert(root, node_k)  # plot tree after insertion
+    state.append(clone_tree(root))
 
     print("Inorder before deletion:")
     inorder_tree_walk(root)
+
     print(f"\nDeleting node {k}...")
     tree_delete(root, node_k)
+    state.append(clone_tree(root))
+
     print("Inorder after deletion:")
     inorder_tree_walk(root)
+
+    plot_tree_states(
+        state,
+        ["Initial Tree", f"After Inserting {k}", f"After Deleting {k}"]
+    )
+    plt.show()
