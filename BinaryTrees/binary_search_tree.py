@@ -10,6 +10,15 @@ BST property:
 2. The right subtree of a node contains only nodes with keys greater than or equal to the node's key.
 """
 
+import random
+
+class Node:
+    def __init__(self, key):
+        self.key = key
+        self.left = None
+        self.right = None
+        self.parent = None
+
 def inorder_tree_walk(node):
     """Prints all the keys in the BST in sorted order."""
     if node is not None:
@@ -21,6 +30,7 @@ def tree_search(node, key):
     """Returns a pointer to a node with key k if one exists, otherwise None."""
     if node is None or key == node.key:
         return node
+
     if key < node.key:
         return tree_search(node.left, key)
     else:
@@ -83,13 +93,15 @@ def tree_insert(root, node):
     Begins at the root of the tree and goes downward to find a None to replace with node.
     The trailing pointer y is the parent of x."""
     y = None
-    x = root
+    x = root  # start at root
+    # Go downward and find where there is a None
     while x is not None:
         y = x
         if node.key < x.key:
             x = x.left
         else:
             x = x.right
+
     # Insert node in a left or right leaf, below the parent (y)
     node.parent = y
     if y == None:
@@ -117,6 +129,7 @@ def tree_delete(root, node):
             node_u.parent.left = node_v
         else:
             node_u.parent.right = node_v
+
         if node_v != None:
             node_v.parent = node_u.parent
     
@@ -126,10 +139,58 @@ def tree_delete(root, node):
         transplant(root, node, node.left)
     else:
         y = tree_minimum(node.right)
+
         if y.parent != node:
             transplant(root, y, y.right)
             y.right = node.right
             y.right.parent = y
+
         transplant(root, node, y)
         y.left = node.left
         y.left.parent = y
+
+
+if __name__ == '__main__':
+    # Generate a tree
+    root = Node(20)
+    for i in range(15):
+        tree_insert(root, Node(random.randint(0, 40)))
+
+    # Testing functions
+    ## Print keys in sorted order
+    print("Inorder traversal:")
+    inorder_tree_walk(root)
+    print()
+
+    ## Search for the number k
+    k = 28
+    print(f"\nSearch for {k}:")
+    node_k = tree_search(root, k)
+    if node_k:
+        print("Found!")
+    else:
+        print("Not found!")
+        node_k = Node(k)  # create node with key k, but do not insert
+
+    ## Minimum and maximum of the tree
+    print("\nMinimum:", tree_minimum(root).key)
+    print("Maximum:", tree_maximum(root).key)
+
+    ## Successor and predecessor of node with key = k
+    successor = tree_successor(node_k)
+    print(f"Successor of {k}:", successor.key if successor else "None")
+
+    predecessor = tree_predecessor(node_k)
+    print(f"Predecessor of {k}:", predecessor.key if predecessor else "None")
+
+    ## Deletion
+    if not tree_search(root, k):  # create node k and insert
+        node_k = Node(k)
+        tree_insert(root, node_k)
+
+    print("Inorder before deletion:")
+    inorder_tree_walk(root)
+    print(f"\nDeleting node {k}...")
+    tree_delete(root, node_k)
+    print("Inorder after deletion:")
+    inorder_tree_walk(root)
